@@ -324,19 +324,29 @@ html, body, [class*="css"] {
 }
 
 /* ---- TEXT INPUT ---- */
-.stTextInput > div > div > input {
-    background: rgba(255,255,255,0.04) !important;
-    border: 1px solid rgba(0,245,255,0.2) !important;
+/* ---- TEXT INPUT FIX ---- */
+.stTextInput input {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    border: 1px solid #00f5ff !important;
     border-radius: 14px !important;
-    color: var(--text-primary) !important;
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 15px !important;
-    padding: 14px 18px !important;
-    transition: border-color 0.3s, box-shadow 0.3s !important;
+    caret-color: #00f5ff !important;
 }
-.stTextInput > div > div > input:focus {
-    border-color: var(--neon-cyan) !important;
-    box-shadow: 0 0 0 3px rgba(0,245,255,0.1) !important;
+
+.stTextInput input::placeholder {
+    color: rgba(255,255,255,0.65) !important;
+}
+
+.stTextInput label {
+    color: #ffffff !important;
+}
+
+[data-testid="stDataFrame"] * {
+    color: #111827 !important;
+}
+
+.stCodeBlock code {
+    color: #00f5ff !important;
 }
 
 /* ---- AI ANSWER CARD ---- */
@@ -405,6 +415,7 @@ hr {
     border: none !important;
 }
 </style>
+            
 """, unsafe_allow_html=True)
 
 # ---------------- DATA ----------------
@@ -421,6 +432,44 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 
 theme = st.sidebar.radio("Theme Mode", ["Dark Neon", "Light Premium"])
+if theme == "Light Premium":
+
+    st.markdown("""
+    <style>
+
+    .stApp {
+        background: #f4f7fb !important;
+        color: #111827 !important;
+    }
+
+    .hero-title {
+        -webkit-text-fill-color: #111827 !important;
+        color: #111827 !important;
+    }
+
+    .hero-sub,
+    .section-title,
+    .ai-insight-text,
+    .footer {
+        color: #374151 !important;
+    }
+
+    .kpi-card,
+    .chart-card,
+    .ai-insight-wrap,
+    .ai-answer {
+        background: rgba(255,255,255,0.85) !important;
+        border: 1px solid rgba(0,0,0,0.08) !important;
+        color: #111827 !important;
+    }
+
+    .stTextInput input {
+        background: white !important;
+        color: black !important;
+    }
+
+    </style>
+    """, unsafe_allow_html=True)
 
 regions = ["All"] + sorted(df["region"].unique().tolist())
 selected_region = st.sidebar.selectbox("🌍 Select Region", regions)
@@ -654,24 +703,35 @@ Ask anything about your data — trends, forecasts, recommendations.</p>
 
 question = st.text_input("", placeholder="e.g. Which region should I focus on next quarter?")
 
-if question:
-    context = f"""
-    Dataset columns: {list(df.columns)}
-    Filtered data summary:
-    Total sales: {total_sales}
-    Total orders: {total_orders}
-    Top region: {top_region}
-    Top product: {top_product}
+# ---------------- AI CHAT ----------------
+st.markdown("""
+<div class="section-header" style="margin-top:42px">
+    <div class="section-dot"></div>
+    <div class="section-title">AI Business Copilot</div>
+    <div class="section-line"></div>
+</div>
+<p style="font-family:'DM Sans',sans-serif;color:#8b9ab5;font-size:14px;margin:-8px 0 18px;">
+Ask anything about your data — trends, forecasts, recommendations.
+</p>
+""", unsafe_allow_html=True)
 
-    User question: {question}
-    """
-    answer = ask_ai(context)
-    st.markdown(f"""
-    <div class="ai-answer">
-        <div class="ai-answer-tag">◈ Copilot Response</div>
-        {answer}
-    </div>
-    """, unsafe_allow_html=True)
+question = st.text_input(
+    "",
+    placeholder="e.g. show sales by region"
+)
+
+if question:
+
+    from ai.llm_service import generate_sql_from_question
+    from database.connection import run_query
+
+    sql_query = generate_sql_from_question(question)
+
+    st.code(sql_query, language="sql")
+
+    result_df = run_query(sql_query)
+
+    st.dataframe(result_df, use_container_width=True)
 
 # ---------------- FOOTER ----------------
 st.markdown("""
