@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from ai.llm_service import ask_ai
+from database.queries import get_all_sales
 
 st.set_page_config(page_title="AI BI Command Center", layout="wide", page_icon="⚡")
 
@@ -407,7 +408,7 @@ hr {
 """, unsafe_allow_html=True)
 
 # ---------------- DATA ----------------
-df = pd.read_csv("data/dataset.csv")
+df = get_all_sales()
 df["order_date"] = pd.to_datetime(df["order_date"])
 
 # ---------------- SIDEBAR ----------------
