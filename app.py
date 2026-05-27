@@ -476,7 +476,22 @@ selected_region = st.sidebar.selectbox("🌍 Select Region", regions)
 
 min_date = df["order_date"].min()
 max_date = df["order_date"].max()
-date_range = st.sidebar.date_input("📅 Select Date Range", [min_date, max_date])
+
+date_range = st.sidebar.date_input(
+    "📅 Select Date Range",
+    [min_date, max_date],
+    key="main_date_filter"
+)
+
+page = st.sidebar.radio(
+    "🚀 Navigation",
+    [
+        "🏠 Executive Overview",
+        "📊 Analytics Lab",
+        "🧠 AI SQL Copilot",
+        "📋 Data Explorer"
+    ]
+)
 
 filtered_df = df.copy()
 
