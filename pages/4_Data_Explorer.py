@@ -505,9 +505,11 @@ with dl_col:
 # ============================================================
 #  SCHEMA  +  NULL HEATMAP  (side by side)
 # ============================================================
+import streamlit.components.v1 as components
+
 st.markdown("""
 <div class="section-hdr">
-    <div class="section-dot" style="background:var(--violet);box-shadow:0 0 10px var(--violet);"></div>
+    <div class="section-dot" style="background:#bf00ff;box-shadow:0 0 10px #bf00ff;"></div>
     <div class="section-hdr-text">Schema & Quality</div>
     <div class="section-line"></div>
 </div>
@@ -515,65 +517,91 @@ st.markdown("""
 
 col_schema, col_null = st.columns(2, gap="large")
 
-# ── Schema / dtypes
+# ── dtype helper
+def dtype_badge(dt):
+    s = str(dt)
+    if "int"      in s: return "integer",  "#00f5ff",  "rgba(0,245,255,0.10)",  "rgba(0,245,255,0.22)"
+    if "float"    in s: return "float",    "#00e5a0",  "rgba(0,229,160,0.10)",  "rgba(0,229,160,0.22)"
+    if "object"   in s: return "string",   "#a855f7",  "rgba(168,85,247,0.10)", "rgba(168,85,247,0.22)"
+    if "datetime" in s: return "datetime", "#ffd700",  "rgba(255,215,0,0.10)",  "rgba(255,215,0,0.22)"
+    if "bool"     in s: return "boolean",  "#ff2d78",  "rgba(255,45,120,0.10)", "rgba(255,45,120,0.22)"
+    return s,            "#ff7b2c",  "rgba(255,123,44,0.10)", "rgba(255,123,44,0.22)"
+
+# ── Schema / dtypes — rendered via components.html (no sanitization)
 with col_schema:
-    st.markdown("""
-    <div style='font-family:Syne,sans-serif;font-size:17px;font-weight:700;
-         color:#f0f4ff;margin-bottom:14px;'>
-        🧬 Column Schema
-    </div>
-    """, unsafe_allow_html=True)
-
-    def dtype_badge(dt):
-        s = str(dt)
-        if "int"      in s: return "dtype-int",    "integer"
-        if "float"    in s: return "dtype-float",  "float"
-        if "object"   in s: return "dtype-object", "string"
-        if "datetime" in s: return "dtype-date",   "datetime"
-        if "bool"     in s: return "dtype-bool",   "boolean"
-        return "dtype-other", s
-
     rows_html = ""
     for col_name, dtype in df.dtypes.items():
-        cls, label = dtype_badge(dtype)
+        label, color, bg, border = dtype_badge(dtype)
         null_count = int(df[col_name].isnull().sum())
-        null_str   = f"<span style='color:#ff2d78;font-size:10px;'>⚠ {null_count} null</span>" if null_count else ""
+        null_html  = (
+            f"<span style='color:#ff2d78;font-size:10px;font-family:Space Mono,monospace;"
+            f"background:rgba(255,45,120,0.08);border:1px solid rgba(255,45,120,0.2);"
+            f"border-radius:99px;padding:2px 8px;'>⚠ {null_count} null</span>"
+        ) if null_count else ""
         rows_html += f"""
-        <div class="dtype-row">
-            <span class="dtype-col">{col_name}</span>
-            <div style='display:flex;align-items:center;gap:10px;'>
-                {null_str}
-                <span class="dtype-badge {cls}">{label}</span>
+        <div style='display:flex;align-items:center;justify-content:space-between;
+             padding:11px 14px;border-bottom:1px solid rgba(255,255,255,0.05);
+             transition:background .2s;border-radius:6px;'>
+            <span style='font-family:Space Mono,monospace;font-size:13px;color:#e2e8f0;'>
+                {col_name}
+            </span>
+            <div style='display:flex;align-items:center;gap:8px;'>
+                {null_html}
+                <span style='font-family:Space Mono,monospace;font-size:10px;
+                      letter-spacing:.12em;text-transform:uppercase;padding:3px 12px;
+                      border-radius:99px;background:{bg};border:1px solid {border};
+                      color:{color};'>
+                    {label}
+                </span>
             </div>
         </div>"""
 
-    st.markdown(f'<div class="glass-panel">{rows_html}</div>', unsafe_allow_html=True)
+    panel_schema = f"""
+    <div style='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);
+         border-radius:20px;padding:8px 0;backdrop-filter:blur(18px);'>
+        <div style='font-family:Syne,sans-serif;font-size:17px;font-weight:700;
+             color:#f0f4ff;padding:14px 18px 10px;'>🧬 Column Schema</div>
+        {rows_html}
+    </div>"""
+
+    panel_h = 80 + len(df.columns) * 47
+    components.html(panel_schema, height=panel_h, scrolling=False)
 
 # ── Null completeness heatmap
 with col_null:
-    st.markdown("""
-    <div style='font-family:Syne,sans-serif;font-size:17px;font-weight:700;
-         color:#f0f4ff;margin-bottom:14px;'>
-        🧪 Data Completeness
-    </div>
-    """, unsafe_allow_html=True)
-
     null_rows_html = ""
     total_rows = len(df)
     for col_name in df.columns:
         null_count   = int(df[col_name].isnull().sum())
         complete_pct = ((total_rows - null_count) / total_rows) * 100
-        bar_cls      = "null-bar-fill has-nulls" if null_count > 0 else "null-bar-fill"
+        bar_grad     = (
+            "linear-gradient(90deg,#ff2d78,#bf00ff)" if null_count > 0
+            else "linear-gradient(90deg,#00e5a0,#00f5ff)"
+        )
         null_rows_html += f"""
-        <div class="null-row">
-            <div class="null-col-name">{col_name}</div>
-            <div class="null-bar-wrap">
-                <div class="{bar_cls}" style="width:{complete_pct:.1f}%"></div>
+        <div style='display:flex;align-items:center;gap:14px;padding:11px 14px;
+             border-bottom:1px solid rgba(255,255,255,0.04);border-radius:6px;'>
+            <div style='font-family:Space Mono,monospace;font-size:12px;color:#e2e8f0;
+                 width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;
+                 white-space:nowrap;'>{col_name}</div>
+            <div style='flex:1;height:8px;border-radius:99px;
+                 background:rgba(255,255,255,0.06);overflow:hidden;'>
+                <div style='width:{complete_pct:.1f}%;height:100%;border-radius:99px;
+                     background:{bar_grad};'></div>
             </div>
-            <div class="null-pct">{complete_pct:.0f}%</div>
+            <div style='font-family:Space Mono,monospace;font-size:11px;color:#8b9ab5;
+                 width:42px;text-align:right;flex-shrink:0;'>{complete_pct:.0f}%</div>
         </div>"""
 
-    st.markdown(f'<div class="glass-panel">{null_rows_html}</div>', unsafe_allow_html=True)
+    panel_null = f"""
+    <div style='background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);
+         border-radius:20px;padding:8px 0;backdrop-filter:blur(18px);'>
+        <div style='font-family:Syne,sans-serif;font-size:17px;font-weight:700;
+             color:#f0f4ff;padding:14px 18px 10px;'>🧪 Data Completeness</div>
+        {null_rows_html}
+    </div>"""
+
+    components.html(panel_null, height=panel_h, scrolling=False)
 
 # ============================================================
 #  SUMMARY STATS
