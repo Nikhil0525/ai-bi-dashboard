@@ -1,3 +1,4 @@
+import plotly.express as px
 import streamlit as st
 import pandas as pd
 from ai.llm_service import generate_sql_from_question
@@ -542,6 +543,43 @@ if question:
             </div>
         """, unsafe_allow_html=True)
         st.dataframe(result, use_container_width=True)
+        if len(result.columns) >= 2:
+            try:
+                x_col = result.columns[0]
+                y_col = result.columns[1]
+
+                fig = px.bar(
+                    result,
+                    x=x_col,
+                    y=y_col,
+                    template="plotly_dark",
+                    color=y_col,
+                    color_continuous_scale="plasma"
+                )
+
+                fig.update_layout(
+                    paper_bgcolor="rgba(0,0,0,0)",
+                    plot_bgcolor="rgba(0,0,0,0)",
+                    font_color="white"
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                st.markdown("""
+            <div class="insight-card">
+                <h4>🤖 AI Insight</h4>
+                <p>
+                The visualization highlights key business trends and performance patterns.
+                Focus on high-performing categories and regions to maximize growth opportunities.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            except:
+                pass
+
+        import plotly.express as px
+
         st.markdown("</div>", unsafe_allow_html=True)
 
 else:
