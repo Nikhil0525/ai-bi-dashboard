@@ -46,7 +46,7 @@ st.markdown("""
       -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
       Forecasting</span>
   </h1>
-  <p style="font-size:15px;font-weight:300;color:#475569;margin:0;">
+  <p style="font-size:15px;font-weight:300;color:#94a3b8;margin:0;">
     Historical sales trends and forward-looking performance analysis.
   </p>
 </div>
