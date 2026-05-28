@@ -55,7 +55,7 @@ with st.sidebar:
     <hr style="border:none;border-top:1px solid rgba(255,255,255,0.05);margin:14px 0;">
     <div style="padding:14px;background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.15);border-radius:10px;">
       <div style="font-size:11px;color:#60a5fa;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">📈 Forecasting</div>
-      <div style="font-size:12px;color:#475569;line-height:1.6;">Sales trend analysis. Add your prediction model below.</div>
+      <div style="font-size:12px;color:#94a3b8;line-height:1.6;">Sales trend analysis. Add your prediction model below.</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -98,7 +98,7 @@ def kpi_card(label, value, sub, color):
       border-radius:14px;padding:20px 22px;">
       <div style="font-size:11px;color:#475569;letter-spacing:0.05em;text-transform:uppercase;font-weight:500;margin-bottom:8px;">{label}</div>
       <div style="font-size:26px;font-family:'Syne',sans-serif;font-weight:700;color:{color};margin-bottom:4px;">{value}</div>
-      <div style="font-size:12px;color:#334155;">{sub}</div>
+      <div style="font-size:12px;color:#64748b;">{sub}</div>
     </div>"""
 
 c1, c2, c3, c4 = st.columns(4, gap="medium")
